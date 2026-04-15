@@ -1,0 +1,1764 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Net Sales Dashboard 2025 — Alpe Adria</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:       #0d1117;
+      --surface:  #161b22;
+      --surface2: #21262d;
+      --surface3: #2d333b;
+      --border:   #30363d;
+      --accent:   #58a6ff;
+      --accent2:  #bc8cff;
+      --green:    #3fb950;
+      --green2:   #56d364;
+      --red:      #f85149;
+      --yellow:   #d29922;
+      --yellow2:  #e3b341;
+      --orange:   #db6d28;
+      --teal:     #39d353;
+      --text:     #c9d1d9;
+      --text2:    #e6edf3;
+      --muted:    #8b949e;
+      --radius:   10px;
+      --shadow:   0 1px 3px rgba(0,0,0,0.4);
+    }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, 'Segoe UI', system-ui, sans-serif;
+      font-size: 14px;
+      min-height: 100vh;
+    }
+
+    /* ── Header ── */
+    header {
+      background: linear-gradient(180deg, #161b22 0%, #0d1117 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .header-left { display: flex; align-items: center; gap: 14px; }
+    .logo {
+      width: 36px; height: 36px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+    }
+    header h1 { font-size: 18px; font-weight: 700; color: var(--text2); }
+    header h1 span { color: var(--accent); }
+    .header-badges { display: flex; gap: 8px; flex-wrap: wrap; }
+    .badge {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 3px 10px;
+      font-size: 11px;
+      color: var(--muted);
+    }
+    .badge strong { color: var(--text); }
+
+    /* ── Layout ── */
+    main { padding: 20px 28px; max-width: 1700px; margin: 0 auto; }
+
+    /* ── Filter Bar ── */
+    .filter-bar {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 20px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: flex-end;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+    .filter-group { display: flex; flex-direction: column; gap: 5px; }
+    .filter-group label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--muted);
+      font-weight: 600;
+    }
+    .filter-group select {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      font-size: 13px;
+      padding: 7px 28px 7px 10px;
+      cursor: pointer;
+      min-width: 160px;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath fill='%238b949e' d='M5 7L0 2h10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 9px center;
+      transition: border-color 0.2s;
+    }
+    .filter-group select:focus { outline: none; border-color: var(--accent); }
+    .filter-group select option { background: #161b22; }
+    .filter-actions { display: flex; gap: 8px; align-self: flex-end; }
+    .btn {
+      border-radius: 6px;
+      font-size: 12px;
+      padding: 7px 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-weight: 500;
+    }
+    .btn-reset {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--muted);
+    }
+    .btn-reset:hover { border-color: var(--accent); color: var(--accent); }
+    .filter-summary {
+      margin-left: auto;
+      font-size: 12px;
+      color: var(--muted);
+      align-self: flex-end;
+      padding-bottom: 7px;
+    }
+    .filter-summary strong { color: var(--accent); }
+
+    /* ── KPI Cards ── */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(175px, 1fr));
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+    .kpi-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 18px;
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.2s, transform 0.15s;
+      cursor: default;
+    }
+    .kpi-card:hover { border-color: var(--accent); transform: translateY(-1px); }
+    .kpi-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+    }
+    .kpi-card.blue::before   { background: var(--accent); }
+    .kpi-card.green::before  { background: var(--green2); }
+    .kpi-card.purple::before { background: var(--accent2); }
+    .kpi-card.yellow::before { background: var(--yellow2); }
+    .kpi-card.orange::before { background: var(--orange); }
+    .kpi-card.red::before    { background: var(--red); }
+    .kpi-card.teal::before   { background: var(--teal); }
+    .kpi-icon {
+      font-size: 20px;
+      margin-bottom: 8px;
+      display: block;
+    }
+    .kpi-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--muted);
+      margin-bottom: 6px;
+      font-weight: 600;
+    }
+    .kpi-value {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text2);
+      line-height: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .kpi-sub { margin-top: 5px; font-size: 11px; color: var(--muted); }
+    .kpi-sub.up   { color: var(--green2); }
+    .kpi-sub.down { color: var(--red); }
+
+    /* ── Section title ── */
+    .section-title {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--muted);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+    /* ── Tabs ── */
+    .tabs {
+      display: flex;
+      gap: 2px;
+      margin-bottom: 18px;
+      border-bottom: 1px solid var(--border);
+    }
+    .tab-btn {
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 500;
+      padding: 9px 16px;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+      transition: color 0.2s, border-color 0.2s;
+      white-space: nowrap;
+    }
+    .tab-btn:hover { color: var(--text); }
+    .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* ── Chart grid ── */
+    .chart-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(440px, 1fr));
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+    .chart-grid-3 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+    .chart-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px;
+    }
+    .chart-card h3 {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text2);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .chart-card h3 small {
+      font-size: 10px;
+      color: var(--muted);
+      font-weight: 400;
+    }
+    .chart-wrap      { position: relative; height: 260px; }
+    .chart-wrap-md   { position: relative; height: 300px; }
+    .chart-wrap-tall { position: relative; height: 360px; }
+
+    /* ── Full-width chart ── */
+    .chart-full {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px;
+      margin-bottom: 18px;
+    }
+    .chart-full h3 {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text2);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .chart-full h3 small { font-size: 10px; color: var(--muted); font-weight: 400; }
+
+    /* ── Table ── */
+    .table-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px;
+      margin-bottom: 18px;
+      overflow-x: auto;
+    }
+    .table-card h3 {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text2);
+      margin-bottom: 12px;
+    }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    thead th {
+      text-align: right;
+      padding: 7px 10px;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: var(--muted);
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+      font-weight: 600;
+    }
+    thead th:first-child, thead th:nth-child(2) { text-align: left; }
+    tbody tr { border-bottom: 1px solid rgba(48,54,61,0.5); transition: background 0.12s; }
+    tbody tr:hover { background: var(--surface2); }
+    tbody tr:last-child { border-bottom: none; }
+    tbody td { padding: 7px 10px; text-align: right; white-space: nowrap; }
+    tbody td:first-child { text-align: left; font-weight: 500; color: var(--text2); }
+    tbody td:nth-child(2) { text-align: left; }
+    .total-row td { font-weight: 700; color: var(--accent); border-top: 1px solid var(--border); background: rgba(88,166,255,0.04); }
+    .subtotal-row td { font-weight: 600; color: var(--text2); background: rgba(255,255,255,0.02); border-top: 1px solid rgba(48,54,61,0.8); }
+
+    /* ── Pills ── */
+    .pill {
+      display: inline-block;
+      padding: 2px 7px;
+      border-radius: 10px;
+      font-size: 10px;
+      font-weight: 600;
+    }
+    .pill-green  { background: rgba(63,185,80,0.15);  color: var(--green2); }
+    .pill-red    { background: rgba(248,81,73,0.15);   color: var(--red); }
+    .pill-blue   { background: rgba(88,166,255,0.15);  color: var(--accent); }
+    .pill-yellow { background: rgba(227,179,65,0.15);  color: var(--yellow2); }
+    .pill-purple { background: rgba(188,140,255,0.15); color: var(--accent2); }
+
+    /* ── Heatmap ── */
+    .heat-pos-3 { background: rgba(63,185,80,0.28); }
+    .heat-pos-2 { background: rgba(63,185,80,0.15); }
+    .heat-pos-1 { background: rgba(63,185,80,0.07); }
+    .heat-neg-1 { background: rgba(248,81,73,0.07); }
+    .heat-neg-2 { background: rgba(248,81,73,0.15); }
+    .heat-neg-3 { background: rgba(248,81,73,0.28); }
+
+    /* ── Progress bar ── */
+    .progress-bar-wrap { background: var(--surface3); border-radius: 4px; height: 6px; overflow: hidden; margin-top: 4px; }
+    .progress-bar { height: 100%; border-radius: 4px; transition: width 0.4s; }
+
+    /* ── Sparkline ── */
+    .sparkline-cell { min-width: 80px; }
+
+    /* ── Country flag emoji ── */
+    .flag { margin-right: 4px; }
+
+    /* ── Insight box ── */
+    .insight-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+    .insight-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+    }
+    .insight-icon { font-size: 22px; flex-shrink: 0; }
+    .insight-body { flex: 1; }
+    .insight-title { font-size: 11px; font-weight: 600; color: var(--text2); margin-bottom: 3px; }
+    .insight-text  { font-size: 11px; color: var(--muted); line-height: 1.5; }
+    .insight-text strong { color: var(--text); }
+
+    /* ── Waterfall ── */
+    .wf-pos { fill: rgba(63,185,80,0.7); }
+    .wf-neg { fill: rgba(248,81,73,0.7); }
+
+    /* ── Footer ── */
+    footer {
+      text-align: center;
+      padding: 16px;
+      color: var(--muted);
+      font-size: 11px;
+      border-top: 1px solid var(--border);
+      margin-top: 8px;
+    }
+
+    /* ── No-data ── */
+    .no-data {
+      text-align: center;
+      padding: 40px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 768px) {
+      main { padding: 14px 16px; }
+      header { padding: 12px 16px; }
+      .chart-grid, .chart-grid-3 { grid-template-columns: 1fr; }
+      .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <div class="logo">📊</div>
+    <div>
+      <h1>Net Sales <span>2025</span> — Alpe Adria</h1>
+    </div>
+  </div>
+  <div class="header-badges">
+    <span class="badge">📅 Year: <strong>2025</strong></span>
+    <span class="badge">💶 Units: <strong>1.000 EUR</strong></span>
+    <span class="badge">🌍 Region: <strong>Alpe Adria</strong></span>
+    <span class="badge">🏢 Source: <strong>P&amp;L 2025upd.csv</strong></span>
+    <span class="badge" id="badge-filter">🔍 <strong>All Data</strong></span>
+  </div>
+</header>
+
+<main>
+
+  <!-- Filter Bar -->
+  <div class="filter-bar">
+    <div class="filter-group">
+      <label>🌍 Country</label>
+      <select id="sel-country" onchange="applyFilters()">
+        <option value="All">All Countries</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label>💊 Brand</label>
+      <select id="sel-brand" onchange="applyFilters()">
+        <option value="All">All Brands</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label>🏥 Therapy Area</label>
+      <select id="sel-therapy" onchange="applyFilters()">
+        <option value="All">All Therapy Areas</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label>📅 Month Range</label>
+      <select id="sel-month" onchange="applyFilters()">
+        <option value="FY">Full Year (Jan–Dec)</option>
+        <option value="H1">H1 (Jan–Jun)</option>
+        <option value="H2">H2 (Jul–Dec)</option>
+        <option value="Q1">Q1 (Jan–Mar)</option>
+        <option value="Q2">Q2 (Apr–Jun)</option>
+        <option value="Q3">Q3 (Jul–Sep)</option>
+        <option value="Q4">Q4 (Oct–Dec)</option>
+      </select>
+    </div>
+    <div class="filter-actions">
+      <button class="btn btn-reset" onclick="resetFilters()">↺ Reset</button>
+    </div>
+    <div class="filter-summary" id="filter-summary">Showing: <strong>All Data</strong></div>
+  </div>
+
+  <!-- KPI Cards -->
+  <div class="section-title">📈 Key Performance Indicators</div>
+  <div class="kpi-grid" id="kpi-grid"></div>
+
+  <!-- Insights -->
+  <div class="section-title">💡 Insights</div>
+  <div class="insight-grid" id="insight-grid"></div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('overview')">🌍 Overview</button>
+    <button class="tab-btn" onclick="switchTab('brands')">💊 Brands</button>
+    <button class="tab-btn" onclick="switchTab('monthly')">📅 Monthly Trend</button>
+    <button class="tab-btn" onclick="switchTab('heatmap')">🔥 Heatmap</button>
+    <button class="tab-btn" onclick="switchTab('detail')">📋 Detail Table</button>
+  </div>
+
+  <!-- TAB: Overview -->
+  <div class="tab-panel active" id="tab-overview">
+    <div class="chart-grid">
+      <div class="chart-card">
+        <h3>Net Sales by Country <small>1.000 EUR · Full Year</small></h3>
+        <div class="chart-wrap-md"><canvas id="chart-country-bar"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <h3>Country Share of Total <small>% of Net Sales</small></h3>
+        <div class="chart-wrap-md"><canvas id="chart-country-donut"></canvas></div>
+      </div>
+    </div>
+    <div class="chart-grid">
+      <div class="chart-card">
+        <h3>Therapy Area Split <small>% of Net Sales</small></h3>
+        <div class="chart-wrap"><canvas id="chart-therapy-donut"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <h3>Monthly Total Net Sales <small>1.000 EUR</small></h3>
+        <div class="chart-wrap"><canvas id="chart-monthly-total"></canvas></div>
+      </div>
+    </div>
+    <div class="table-card">
+      <h3>Country Performance Summary</h3>
+      <table id="table-country-summary"></table>
+    </div>
+  </div>
+
+  <!-- TAB: Brands -->
+  <div class="tab-panel" id="tab-brands">
+    <div class="chart-grid">
+      <div class="chart-card">
+        <h3>Net Sales by Brand <small>1.000 EUR · Full Year</small></h3>
+        <div class="chart-wrap-md"><canvas id="chart-brand-bar"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <h3>Brand Share of Total <small>% of Net Sales</small></h3>
+        <div class="chart-wrap-md"><canvas id="chart-brand-donut"></canvas></div>
+      </div>
+    </div>
+    <div class="chart-full">
+      <h3>Brand Performance by Country <small>Stacked · 1.000 EUR</small></h3>
+      <div class="chart-wrap-md"><canvas id="chart-brand-country-stacked"></canvas></div>
+    </div>
+    <div class="table-card">
+      <h3>Brand × Country Matrix — Full Year 2025</h3>
+      <table id="table-brand-matrix"></table>
+    </div>
+  </div>
+
+  <!-- TAB: Monthly Trend -->
+  <div class="tab-panel" id="tab-monthly">
+    <div class="chart-full">
+      <h3>Monthly Net Sales by Country <small>1.000 EUR · Line per Country</small></h3>
+      <div class="chart-wrap-md"><canvas id="chart-monthly-country"></canvas></div>
+    </div>
+    <div class="chart-full">
+      <h3>Monthly Net Sales by Brand <small>1.000 EUR · Line per Brand</small></h3>
+      <div class="chart-wrap-md"><canvas id="chart-monthly-brand"></canvas></div>
+    </div>
+    <div class="chart-grid">
+      <div class="chart-card">
+        <h3>Quarterly Breakdown by Country <small>1.000 EUR · Stacked</small></h3>
+        <div class="chart-wrap-md"><canvas id="chart-quarterly-country"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <h3>Quarterly Breakdown by Brand <small>1.000 EUR · Stacked</small></h3>
+        <div class="chart-wrap-md"><canvas id="chart-quarterly-brand"></canvas></div>
+      </div>
+    </div>
+    <div class="table-card">
+      <h3>Monthly Breakdown by Country</h3>
+      <table id="table-monthly-country"></table>
+    </div>
+  </div>
+
+  <!-- TAB: Heatmap -->
+  <div class="tab-panel" id="tab-heatmap">
+    <div class="table-card">
+      <h3>🔥 Country × Month Heatmap <small style="color:var(--muted);font-weight:400;font-size:11px;margin-left:6px">Color intensity = value magnitude</small></h3>
+      <table id="table-heatmap-country"></table>
+    </div>
+    <div class="table-card">
+      <h3>🔥 Brand × Month Heatmap <small style="color:var(--muted);font-weight:400;font-size:11px;margin-left:6px">Color intensity = value magnitude</small></h3>
+      <table id="table-heatmap-brand"></table>
+    </div>
+  </div>
+
+  <!-- TAB: Detail -->
+  <div class="tab-panel" id="tab-detail">
+    <div class="table-card">
+      <h3>Full Detail — Country × Brand × Month</h3>
+      <table id="table-detail"></table>
+    </div>
+  </div>
+
+</main>
+
+<footer>
+  P&amp;L 2025 · Net Sales · Alpe Adria Region · Units: 1.000 EUR · Source: P&amp;L 2025upd.csv
+</footer>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════════
+//  DATA — parsed directly from P&L 2025.csv
+// ═══════════════════════════════════════════════════════════════════════
+const RAW = [
+  // ── Albania ──────────────────────────────────────────────────────────
+  { country:'Albania', brand:'Adalat',          therapy:'Cardiovascular',  jan:1,     feb:0,     mar:1,     apr:0,     may:1,     jun:0,     jul:1,     aug:0,     sep:1,     oct:0,     nov:1,     dec:0     },
+  { country:'Albania', brand:'Cardioaspirin',   therapy:'Cardiovascular',  jan:390,   feb:null,  mar:null,  apr:null,  may:null,  jun:75,    jul:105,   aug:151,   sep:46,    oct:150,   nov:150,   dec:151   },
+  { country:'Albania', brand:'Cardioaspirin',   therapy:'Cardiovascular',  jan:376,   feb:481,   mar:null,  apr:null,  may:75,    jun:75,    jul:105,   aug:151,   sep:46,    oct:150,   nov:150,   dec:151   },
+  { country:'Albania', brand:'Min. Brands CVD', therapy:'Cardiovascular',  jan:0,     feb:0.7,   mar:-0.3,  apr:-0.3,  may:null,  jun:null,  jul:null,  aug:null,  sep:null,  oct:null,  nov:null,  dec:null  },
+  { country:'Albania', brand:'Kerendia',        therapy:'Cardiovascular',  jan:67,    feb:28,    mar:40,    apr:33,    may:29,    jun:50,    jul:38,    aug:35,    sep:48,    oct:61,    nov:59,    dec:42    },
+  { country:'Albania', brand:'Verquvo II',      therapy:'Cardiovascular',  jan:null,  feb:null,  mar:null,  apr:null,  may:null,  jun:null,  jul:null,  aug:null,  sep:null,  oct:null,  nov:1,     dec:null  },
+  { country:'Albania', brand:'Nexavar',         therapy:'Oncology',        jan:-0.3,  feb:0,     mar:0.5,   apr:0.5,   may:0,     jun:-1,    jul:-1,    aug:-0.3,  sep:-0.3,  oct:-0.5,  nov:1.2,   dec:-0.5  },
+  { country:'Albania', brand:'Nubeqa',          therapy:'Oncology',        jan:49.3,  feb:11.3,  mar:26.8,  apr:18.2,  may:45,    jun:45,    jul:45,    aug:56.3,  sep:0,     oct:22.5,  nov:33.8,  dec:45    },
+  { country:'Albania', brand:'Stivarga',        therapy:'Oncology',        jan:0,     feb:28.5,  mar:28.5,  apr:1.4,   may:null,  jun:null,  jul:null,  aug:null,  sep:null,  oct:null,  nov:null,  dec:null  },
+  { country:'Albania', brand:'Mirena',          therapy:"Women's Health",  jan:376,   feb:481,   mar:null,  apr:null,  may:75,    jun:75,    jul:105,   aug:151,   sep:46,    oct:150,   nov:150,   dec:151   },
+  { country:'Albania', brand:'Qlaira',          therapy:"Women's Health",  jan:3,     feb:null,  mar:null,  apr:null,  may:null,  jun:null,  jul:null,  aug:null,  sep:null,  oct:null,  nov:null,  dec:null  },
+  { country:'Albania', brand:'Qlaira',          therapy:"Women's Health",  jan:0.6,   feb:2.5,   mar:2,     apr:0.4,   may:0.9,   jun:1.7,   jul:1.6,   aug:1.6,   sep:1.6,   oct:1.6,   nov:2.7,   dec:3.1   },
+  { country:'Albania', brand:'Yaz Family',      therapy:"Women's Health",  jan:28,    feb:17.2,  mar:19.3,  apr:19.3,  may:3.6,   jun:15.1,  jul:2.7,   aug:14.2,  sep:16.7,  oct:18.9,  nov:19.7,  dec:8.9   },
+  { country:'Albania', brand:'Femara',          therapy:"Women's Health",  jan:9.1,   feb:4.3,   mar:5.7,   apr:4.9,   may:1.4,   jun:4.3,   jul:5.7,   aug:1.4,   sep:5.7,   oct:1.4,   nov:1.4,   dec:1.4   },
+  { country:'Albania', brand:'Minor Brands WH', therapy:"Women's Health",  jan:6.6,   feb:null,  mar:2.3,   apr:0.5,   may:2.9,   jun:null,  jul:2.3,   aug:1.1,   sep:6.2,   oct:1.1,   nov:2.3,   dec:1.1   },
+  { country:'Albania', brand:'Betaferon',       therapy:'Neurology',       jan:4,     feb:3,     mar:5,     apr:3,     may:4,     jun:3,     jul:null,  aug:3,     sep:4,     oct:null,  nov:3,     dec:8     },
+  { country:'Albania', brand:'Eylea 2MG',       therapy:'Ophthalmology',   jan:140.8, feb:-22.9, mar:58.6,  apr:33.1,  may:41.3,  jun:72.2,  jul:33.8,  aug:82.2,  sep:56.3,  oct:24.8,  nov:49.5,  dec:37.3  },
+  { country:'Albania', brand:'Eylea 8MG',       therapy:'Ophthalmology',   jan:115.3, feb:63.2,  mar:59.2,  apr:27.7,  may:26.7,  jun:55.8,  jul:58.2,  aug:-1.2,  sep:-12,   oct:46.1,  nov:61.2,  dec:23.7  },
+  { country:'Albania', brand:'Xarelto',         therapy:'Ophthalmology',   jan:58,    feb:182,   mar:613,   apr:-38,   may:45,    jun:441,   jul:122,   aug:197,   sep:436,   oct:12,    nov:86,    dec:351   },
+  // ── Bosnia-Herzegovina ───────────────────────────────────────────────
+  { country:'Bosnia-Herz.', brand:'Min. Brands CVD', therapy:'Cardiovascular', jan:-0.2,  feb:0.3,   mar:0,     apr:-0.1,  may:null,  jun:null,  jul:null,  aug:null,  sep:null,  oct:null,  nov:null,  dec:null  },
+  { country:'Bosnia-Herz.', brand:'Cardioaspirin',   therapy:'Cardiovascular', jan:173,   feb:237,   mar:622,   apr:62,    may:181,   jun:461,   jul:96,    aug:220,   sep:693,   oct:128,   nov:157,   dec:321   },
+  { country:'Bosnia-Herz.', brand:'Kerendia',        therapy:'Cardiovascular', jan:36.1,  feb:28.9,  mar:31.8,  apr:21.7,  may:28.9,  jun:26,    jul:14.4,  aug:28.9,  sep:34.3,  oct:27.5,  nov:34.3,  dec:14.8  },
+  { country:'Bosnia-Herz.', brand:'Kogenate',        therapy:'Hematology',     jan:-0.4,  feb:0.7,   mar:-0.3,  apr:0.1,   may:0.1,   jun:-0.1,  jul:-0.3,  aug:0,     sep:-0.1,  oct:0.1,   nov:0.6,   dec:-0.7  },
+  { country:'Bosnia-Herz.', brand:'Jivi',            therapy:'Hematology',     jan:50.4,  feb:9.3,   mar:9.3,   apr:42.9,  may:55.9,  jun:42.9,  jul:9.3,   aug:33.6,  sep:67.1,  oct:55.9,  nov:1,     dec:59.7  },
+  { country:'Bosnia-Herz.', brand:'Grp. Int. R',     therapy:'Pharma Others',  jan:null,  feb:null,  mar:null,  apr:null,  may:null,  jun:null,  jul:null,  aug:null,  sep:null,  oct:null,  nov:null,  dec:1     },
+  { country:'Bosnia-Herz.', brand:'Diane',           therapy:"Women's Health", jan:8.5,   feb:4.2,   mar:7.2,   apr:2.5,   may:6,     jun:8.4,   jul:2.7,   aug:3.7,   sep:10.1,  oct:1,     nov:2,     dec:6.1   },
+  { country:'Bosnia-Herz.', brand:'Microgynon',      therapy:"Women's Health", jan:6.8,   feb:9.6,   mar:16.4,  apr:4.8,   may:9,     jun:21,    jul:5.1,   aug:7.7,   sep:19,    oct:9.5,   nov:1.6,   dec:8.1   },
+  { country:'Bosnia-Herz.', brand:'Mirena',          therapy:"Women's Health", jan:6,     feb:9,     mar:12,    apr:6,     may:6,     jun:6,     jul:6,     aug:6,     sep:6,     oct:6,     nov:7,     dec:null  },
+  { country:'Bosnia-Herz.', brand:'Qlaira',          therapy:"Women's Health", jan:3.4,   feb:6.2,   mar:9.1,   apr:1.8,   may:2.8,   jun:1.2,   jul:null,  aug:17.3,  sep:0,     oct:null,  nov:4.1,   dec:13.6  },
+  { country:'Bosnia-Herz.', brand:'Yaz Family',      therapy:"Women's Health", jan:18,    feb:18.5,  mar:51.4,  apr:10.8,  may:15,    jun:54.5,  jul:20.6,  aug:20,    sep:63.6,  oct:18.9,  nov:32.9,  dec:null  },
+  { country:'Bosnia-Herz.', brand:'Meliane',         therapy:"Women's Health", jan:9.3,   feb:3.7,   mar:12,    apr:0.5,   may:3.1,   jun:12.2,  jul:3.3,   aug:3,     sep:11.3,  oct:3.3,   nov:4.3,   dec:4.1   },
+  { country:'Bosnia-Herz.', brand:'Visanne',         therapy:"Women's Health", jan:17,    feb:17.6,  mar:16.8,  apr:17,    may:17,    jun:17.6,  jul:28.3,  aug:32.3,  sep:22.9,  oct:null,  nov:null,  dec:null  },
+  { country:'Bosnia-Herz.', brand:'Betaferon',       therapy:'Neurology',      jan:61,    feb:103,   mar:null,  apr:19,    may:10,    jun:43,    jul:null,  aug:19,    sep:79,    oct:null,  nov:12,    dec:51    },
+  { country:'Bosnia-Herz.', brand:'Eylea 2MG',       therapy:'Ophthalmology',  jan:27,    feb:28,    mar:74,    apr:-12.5, may:15.9,  jun:41.9,  jul:53.6,  aug:49.3,  sep:13.7,  oct:13.4,  nov:76.5,  dec:20    },
+  { country:'Bosnia-Herz.', brand:'Eylea 8MG',       therapy:'Ophthalmology',  jan:null,  feb:null,  mar:20,    apr:8,     may:-0.5,  jun:3.1,   jul:27.1,  aug:-1.6,  sep:-13.3, oct:8.3,   nov:-14,   dec:9     },
+  // ── Croatia ──────────────────────────────────────────────────────────
+  { country:'Croatia', brand:'Cardioaspirin',   therapy:'Cardiovascular',  jan:3163,  feb:3134,  mar:1813,  apr:2328,  may:2086,  jun:1813,  jul:1547,  aug:1342,  sep:1449,  oct:1825,  nov:2797,  dec:0     },
+  { country:'Croatia', brand:'Min. Brands CVD', therapy:'Cardiovascular',  jan:0.1,   feb:0.9,   mar:0.3,   apr:0.5,   may:null,  jun:null,  jul:null,  aug:null,  sep:null,  oct:null,  nov:null,  dec:null  },
+  { country:'Croatia', brand:'Kerendia',        therapy:'Cardiovascular',  jan:89,    feb:88,    mar:76,    apr:112,   may:88,    jun:85,    jul:85,    aug:94,    sep:106,   oct:29,    nov:173,   dec:61    },
+  { country:'Croatia', brand:'Kerendia',        therapy:'Cardiovascular',  jan:16.9,  feb:15.9,  mar:15.7,  apr:26.5,  may:1,     jun:12,    jul:21,    aug:28,    sep:23,    oct:41,    nov:52,    dec:44    },
+  { country:'Croatia', brand:'Verquvo',         therapy:'Cardiovascular',  jan:null,  feb:null,  mar:null,  apr:null,  may:1,     jun:null,  jul:null,  aug:null,  sep:null,  oct:null,  nov:1,     dec:null  },
+  { country:'Croatia', brand:'Nexavar',         therapy:'Oncology',        jan:2.4,   feb:5.5,   mar:12.8,  apr:34.4,  may:10.3,  jun:12.7,  jul:10.4,  aug:-1.1,  sep:-0.4,  oct:-0.2,  nov:4.1,   dec:1.1   },
+  { country:'Croatia', brand:'Nubeqa',          therapy:'Oncology',        jan:423.1, feb:396,   mar:479.4, apr:619,   may:218.9, jun:360.6, jul:487.7, aug:431.5, sep:433.5, oct:724.1, nov:1083.9,dec:566   },
+  { country:'Croatia', brand:'Xofigo',          therapy:'Oncology',        jan:27.1,  feb:22.5,  mar:18,    apr:23,    may:18.3,  jun:13.5,  jul:9,     aug:31.6,  sep:18,    oct:31.6,  nov:36.1,  dec:27.1  },
+  { country:'Croatia', brand:'Stivarga',        therapy:'Oncology',        jan:20.1,  feb:12.8,  mar:98.4,  apr:23.6,  may:22.9,  jun:79.1,  jul:8.6,   aug:29.4,  sep:19.2,  oct:12.8,  nov:42.8,  dec:null  },
+  { country:'Croatia', brand:'Kogenate',        therapy:'Hematology',      jan:0.2,   feb:-0.5,  mar:1,     apr:-0.1,  may:0.1,   jun:-0.2,  jul:-1.3,  aug:1.6,   sep:0.2,   oct:-0.6,  nov:0.8,   dec:null  },
+  { country:'Croatia', brand:'Jivi',            therapy:'Hematology',      jan:52.8,  feb:147.5, mar:141,   apr:61.1,  may:190,   jun:138.9, jul:174.2, aug:178.3, sep:141.4, oct:112.8, nov:318.6, dec:100.2 },
+  { country:'Croatia', brand:'Diane',           therapy:"Women's Health",  jan:7.3,   feb:3.1,   mar:4.7,   apr:5.2,   may:5.8,   jun:5.3,   jul:6.9,   aug:6,     sep:2.8,   oct:6,     nov:4.8,   dec:4.8   },
+  { country:'Croatia', brand:'Mirena',          therapy:"Women's Health",  jan:28,    feb:null,  mar:null,  apr:51,    may:null,  jun:null,  jul:null,  aug:null,  sep:null,  oct:18,    nov:15.8,  dec:51    },
+  { country:'Croatia', brand:'Qlaira',          therapy:"Women's Health",  jan:18.7,  feb:14.8,  mar:20,    apr:20.7,  may:9.7,   jun:29.7,  jul:24.2,  aug:12.1,  sep:18.1,  oct:10.8,  nov:15.8,  dec:null  },
+  { country:'Croatia', brand:'Yaz Family',      therapy:"Women's Health",  jan:53.8,  feb:53.4,  mar:38.5,  apr:65,    may:51.7,  jun:40.9,  jul:54.3,  aug:75.1,  sep:43.6,  oct:46.5,  nov:44.2,  dec:55    },
+  { country:'Croatia', brand:'Angelic',         therapy:"Women's Health",  jan:2,     feb:9,     mar:1,     apr:3,     may:3,     jun:2,     jul:3,     aug:null,  sep:2,     oct:4,     nov:1,     dec:null  },
+  { country:'Croatia', brand:'Meliane',         therapy:"Women's Health",  jan:10.9,  feb:10.9,  mar:11.6,  apr:10.9,  may:13.4,  jun:13.4,  jul:13.8,  aug:13.8,  sep:17.3,  oct:12.4,  nov:7.1,   dec:null  },
+  { country:'Croatia', brand:'Visanne',         therapy:"Women's Health",  jan:12.1,  feb:12.1,  mar:11.3,  apr:12.1,  may:13.2,  jun:12.1,  jul:12.1,  aug:13.2,  sep:17.3,  oct:7.3,   nov:21.2,  dec:null  },
+  { country:'Croatia', brand:'Betaferon',       therapy:'Neurology',       jan:16,    feb:50,    mar:32,    apr:34,    may:40,    jun:18.6,  jul:12.7,  aug:13.8,  sep:7.3,   oct:4.9,   nov:12.4,  dec:42    },
+  { country:'Croatia', brand:'Eylea 2MG',       therapy:'Ophthalmology',   jan:303.4, feb:395.2, mar:150,   apr:166.1, may:163.5, jun:201.4, jul:168.4, aug:255.2, sep:199.4, oct:264.5, nov:212.9, dec:91.5  },
+  { country:'Croatia', brand:'Eylea 8MG',       therapy:'Ophthalmology',   jan:62.6,  feb:-40.2, mar:41,    apr:23.9,  may:88.5,  jun:42.6,  jul:43.6,  aug:46.8,  sep:100.6, oct:146.5, nov:139.1, dec:105.5 },
+  { country:'Croatia', brand:'Xarelto',         therapy:'Ophthalmology',   jan:94,    feb:83,    mar:45,    apr:0,     may:61,    jun:77,    jul:-50,   aug:39,    sep:37,    oct:34,    nov:48,    dec:33    },
+  // ── Montenegro ───────────────────────────────────────────────────────
+  { country:'Montenegro', brand:'Cardioaspirin',   therapy:'Cardiovascular', jan:25,    feb:15,    mar:32,    apr:9,     may:19,    jun:43,    jul:16,    aug:17,    sep:18,    oct:21,    nov:29,    dec:40    },
+  { country:'Montenegro', brand:'Min. Brands CVD', therapy:'Cardiovascular', jan:null,  feb:null,  mar:null,  apr:null,  may:0.1,   jun:null,  jul:null,  aug:null,  sep:null,  oct:null,  nov:null,  dec:null  },
+  { country:'Montenegro', brand:'Kerendia',        therapy:'Cardiovascular', jan:0.8,   feb:7.6,   mar:9.3,   apr:12.8,  may:34.4,  jun:5.6,   jul:6.3,   aug:5,     sep:11.9,  oct:6.3,   nov:3.4,   dec:null  },
+  { country:'Montenegro', brand:'Nubeqa',          therapy:'Oncology',       jan:20.4,  feb:18.1,  mar:14.8,  apr:22.6,  may:56.6,  jun:34,    jul:11.9,  aug:22.6,  sep:22.5,  oct:3.4,   nov:null,  dec:null  },
+  { country:'Montenegro', brand:'Diane',           therapy:"Women's Health", jan:1.3,   feb:-0.3,  mar:0.5,   apr:1,     may:1,     jun:1.7,   jul:1,     aug:0.9,   sep:-1.2,  oct:0.7,   nov:1.4,   dec:1.6   },
+  { country:'Montenegro', brand:'Microgynon',      therapy:"Women's Health", jan:1.1,   feb:0.6,   mar:0.8,   apr:0.8,   may:0.6,   jun:1.1,   jul:1,     aug:0.6,   sep:1.1,   oct:0.6,   nov:1.8,   dec:1.6   },
+  { country:'Montenegro', brand:'Yaz Family',      therapy:"Women's Health", jan:13.2,  feb:7.4,   mar:5.8,   apr:13.3,  may:5.7,   jun:14.7,  jul:9.2,   aug:10.3,  sep:8.1,   oct:8.2,   nov:11.2,  dec:12.1  },
+  { country:'Montenegro', brand:'Angelic',         therapy:"Women's Health", jan:0.2,   feb:null,  mar:-0.1,  apr:1.3,   may:-0.2,  jun:null,  jul:null,  aug:null,  sep:null,  oct:null,  nov:null,  dec:null  },
+  { country:'Montenegro', brand:'Meliane',         therapy:"Women's Health", jan:2.7,   feb:1,     mar:0.5,   apr:1.9,   may:0.7,   jun:2.2,   jul:2.2,   aug:2.7,   sep:1.9,   oct:2.1,   nov:1.4,   dec:null  },
+  { country:'Montenegro', brand:'Minor Brands WH', therapy:"Women's Health", jan:1.3,   feb:1.8,   mar:1.5,   apr:1.4,   may:1.3,   jun:1.5,   jul:2.3,   aug:1.5,   sep:0.8,   oct:1.3,   nov:1.4,   dec:null  },
+  { country:'Montenegro', brand:'Betaferon',       therapy:'Neurology',      jan:15,    feb:12,    mar:15,    apr:16,    may:15,    jun:2,     jul:0.7,   aug:8,     sep:16,    oct:12,    nov:2,     dec:48    },
+  { country:'Montenegro', brand:'Eylea 2MG',       therapy:'Ophthalmology',  jan:44,    feb:45,    mar:34,    apr:44,    may:33,    jun:22,    jul:14,    aug:44,    sep:9,     oct:33,    nov:74,    dec:12.5  },
+  { country:'Montenegro', brand:'Eylea 8MG',       therapy:'Ophthalmology',  jan:null,  feb:null,  mar:null,  apr:null,  may:null,  jun:null,  jul:null,  aug:null,  sep:6,     oct:9,     nov:12,    dec:-1    },
+  // ── North Macedonia ──────────────────────────────────────────────────
+  { country:'North Macedonia', brand:'Min. Brands CVD', therapy:'Cardiovascular', jan:0,     feb:-0.3,  mar:1.2,   apr:-0.4,  may:null,  jun:null,  jul:null,  aug:null,  sep:null,  oct:null,  nov:null,  dec:null  },
+  { country:'North Macedonia', brand:'Cardioaspirin',   therapy:'Cardiovascular', jan:16,    feb:45,    mar:559,   apr:64,    may:17,    jun:287,   jul:106,   aug:1,     sep:69,    oct:11,    nov:465,   dec:null  },
+  { country:'North Macedonia', brand:'Kerendia',        therapy:'Cardiovascular', jan:0,     feb:9.3,   mar:8.8,   apr:6.4,   may:23,    jun:10,    jul:16,    aug:11,    sep:28,    oct:10,    nov:45,    dec:12    },
+  { country:'North Macedonia', brand:'Nexavar',         therapy:'Oncology',       jan:null,  feb:null,  mar:null,  apr:null,  may:1,     jun:null,  jul:null,  aug:0.6,   sep:1.5,   oct:3,     nov:0.7,   dec:-0.1  },
+  { country:'North Macedonia', brand:'Nubeqa',          therapy:'Oncology',       jan:null,  feb:null,  mar:null,  apr:null,  may:19.1,  jun:null,  jul:null,  aug:null,  sep:53.8,  oct:null,  nov:10.4,  dec:62.5  },
+  { country:'North Macedonia', brand:'Nubeqa',          therapy:'Oncology',       jan:0.9,   feb:0.4,   mar:1.3,   apr:1.3,   may:0.2,   jun:1.3,   jul:0.8,   aug:1,     sep:0.7,   oct:2,     nov:1.4,   dec:-0.1  },
+  { country:'North Macedonia', brand:'Microgynon',      therapy:"Women's Health", jan:1.3,   feb:1.5,   mar:1.5,   apr:1.5,   may:1.3,   jun:2.1,   jul:2,     aug:1.3,   sep:2.2,   oct:2.6,   nov:1.3,   dec:null  },
+  { country:'North Macedonia', brand:'Mirena',          therapy:"Women's Health", jan:2,     feb:1,     mar:null,  apr:1,     may:3,     jun:5,     jul:2,     aug:0,     sep:4,     oct:null,  nov:null,  dec:null  },
+  { country:'North Macedonia', brand:'Qlaira',          therapy:"Women's Health", jan:2,     feb:1,     mar:1,     apr:3,     may:5,     jun:2,     jul:0,     aug:4,     sep:null,  oct:null,  nov:null,  dec:null  },
+  { country:'North Macedonia', brand:'Yaz Family',      therapy:"Women's Health", jan:11.9,  feb:9,     mar:8.6,   apr:6.5,   may:10.2,  jun:6.5,   jul:6.3,   aug:14.9,  sep:5,     oct:8.7,   nov:4.6,   dec:3.1   },
+  { country:'North Macedonia', brand:'Minor Brands WH', therapy:"Women's Health", jan:1.6,   feb:1,     mar:0.7,   apr:1.4,   may:1.4,   jun:1.2,   jul:1.4,   aug:1.4,   sep:1.2,   oct:1.3,   nov:1.4,   dec:null  },
+  { country:'North Macedonia', brand:'Betaferon',       therapy:'Neurology',      jan:20.6,  feb:-3.1,  mar:27.8,  apr:37.8,  may:27.5,  jun:-0.6,  jul:23.2,  aug:18.4,  sep:-0.2,  oct:12.9,  nov:18.5,  dec:4.1   },
+  { country:'North Macedonia', brand:'Eylea 8MG',       therapy:'Ophthalmology',  jan:28.1,  feb:14.3,  mar:53.7,  apr:52.2,  may:76.5,  jun:-22,   jul:-1.2,  aug:48.6,  sep:-0.8,  oct:54.1,  nov:14.6,  dec:22    },
+  { country:'North Macedonia', brand:'Eylea 2MG',       therapy:'Ophthalmology',  jan:287,   feb:167,   mar:100,   apr:100,   may:100,   jun:100,   jul:100,   aug:100,   sep:146,   oct:239,   nov:136,   dec:147   },
+  // ── Serbia ───────────────────────────────────────────────────────────
+  { country:'Serbia', brand:'Min. Brands CVD', therapy:'Cardiovascular', jan:2.1,   feb:null,  mar:null,  apr:null,  may:null,  jun:null,  jul:null,  aug:null,  sep:null,  oct:null,  nov:null,  dec:null  },
+  { country:'Serbia', brand:'Cardioaspirin',   therapy:'Cardiovascular', jan:244,   feb:66,    mar:355,   apr:330,   may:526,   jun:220,   jul:457,   aug:155,   sep:490,   oct:538,   nov:3,     dec:958   },
+  { country:'Serbia', brand:'Kerendia',        therapy:'Cardiovascular', jan:2,     feb:1,     mar:4,     apr:4,     may:5,     jun:9,     jul:7,     aug:5,     sep:6,     oct:5,     nov:7,     dec:7     },
+  { country:'Serbia', brand:'Nexavar',         therapy:'Oncology',       jan:17.7,  feb:7.1,   mar:28.2,  apr:17.7,  may:null,  jun:12.4,  jul:14.1,  aug:12.4,  sep:70.6,  oct:null,  nov:null,  dec:null  },
+  { country:'Serbia', brand:'Vitraki',         therapy:'Oncology',       jan:10.9,  feb:null,  mar:10.5,  apr:null,  may:10.7,  jun:null,  jul:4.7,   aug:8,     sep:-6.3,  oct:0.2,   nov:-6.1,  dec:null  },
+  { country:'Serbia', brand:'Diane',           therapy:"Women's Health", jan:18.2,  feb:9.2,   mar:9,     apr:13.4,  may:14,    jun:14.3,  jul:12.8,  aug:12.6,  sep:6.9,   oct:10.9,  nov:13.3,  dec:11.2  },
+  { country:'Serbia', brand:'Mirena',          therapy:"Women's Health", jan:22,    feb:19.2,  mar:17.9,  apr:9,     may:15,    jun:21,    jul:19,    aug:21,    sep:19,    oct:21,    nov:19,    dec:25    },
+  { country:'Serbia', brand:'Qlaira',          therapy:"Women's Health", jan:15,    feb:24,    mar:35.6,  apr:9,     may:16,    jun:15,    jul:16,    aug:15,    sep:16,    oct:26,    nov:13,    dec:null  },
+  { country:'Serbia', brand:'Yaz Family',      therapy:"Women's Health", jan:70.2,  feb:49.5,  mar:49.1,  apr:76.1,  may:51.8,  jun:39,    jul:60.3,  aug:34.3,  sep:49,    oct:0,     nov:null,  dec:null  },
+  { country:'Serbia', brand:'Meliane',         therapy:"Women's Health", jan:19.7,  feb:13.1,  mar:9.9,   apr:11.8,  may:17.1,  jun:13.1,  jul:9.6,   aug:12.9,  sep:15,    oct:11.5,  nov:8.4,   dec:14.4  },
+  { country:'Serbia', brand:'Minor Brands WH', therapy:"Women's Health", jan:14.3,  feb:11.8,  mar:10.4,  apr:27,    may:11.8,  jun:10.4,  jul:18.5,  aug:52.4,  sep:31.1,  oct:3.1,   nov:25.7,  dec:32.8  },
+  { country:'Serbia', brand:'Eylea 2MG',       therapy:'Ophthalmology',  jan:33,    feb:79,    mar:107,   apr:129,   may:49,    jun:90,    jul:94,    aug:14,    sep:34,    oct:25,    nov:24,    dec:32    },
+  { country:'Serbia', brand:'Eylea 8MG',       therapy:'Ophthalmology',  jan:null,  feb:null,  mar:null,  apr:null,  may:null,  jun:null,  jul:null,  aug:null,  sep:null,  oct:null,  nov:null,  dec:null  },
+  // ── Slovenia ─────────────────────────────────────────────────────────
+  { country:'Slovenia', brand:'Adalat',            therapy:'Cardiovascular',  jan:24,    feb:29,    mar:32,    apr:41,    may:24,    jun:37,    jul:31,    aug:20,    sep:32,    oct:28,    nov:24,    dec:38    },
+  { country:'Slovenia', brand:'Cardioaspirin',     therapy:'Cardiovascular',  jan:231,   feb:565,   mar:557,   apr:783,   may:492,   jun:436,   jul:456,   aug:472,   sep:468,   oct:601,   nov:438,   dec:203   },
+  { country:'Slovenia', brand:'Cardioaspirin',     therapy:'Cardiovascular',  jan:73,    feb:72,    mar:96,    apr:95,    may:74,    jun:82,    jul:86,    aug:63,    sep:91,    oct:84,    nov:84,    dec:90    },
+  { country:'Slovenia', brand:'Verquvo',           therapy:'Cardiovascular',  jan:5,     feb:5,     mar:5,     apr:6,     may:5,     jun:7,     jul:5,     aug:6,     sep:6,     oct:5,     nov:null,  dec:null  },
+  { country:'Slovenia', brand:'Beyonttra',         therapy:'Cardiovascular',  jan:null,  feb:null,  mar:null,  apr:null,  may:null,  jun:null,  jul:null,  aug:null,  sep:null,  oct:null,  nov:0,     dec:39    },
+  { country:'Slovenia', brand:'Nexavar',           therapy:'Oncology',        jan:2.6,   feb:1.5,   mar:5.8,   apr:6.3,   may:7.5,   jun:2.9,   jul:2.9,   aug:2.9,   sep:-0.7,  oct:4.2,   nov:0.9,   dec:null  },
+  { country:'Slovenia', brand:'Nubeqa',            therapy:'Oncology',        jan:270,   feb:262,   mar:305,   apr:248,   may:195.4, jun:103.3, jul:155.9, aug:132.4, sep:0,     oct:101.7, nov:134.6, dec:58.8  },
+  { country:'Slovenia', brand:'Nubeqa',            therapy:'Oncology',        jan:270,   feb:260,   mar:246,   apr:276,   may:289,   jun:196,   jul:269,   aug:293,   sep:341,   oct:246,   nov:268,   dec:287   },
+  { country:'Slovenia', brand:'Stivarga',          therapy:'Oncology',        jan:47.7,  feb:60.7,  mar:56.4,  apr:52,    may:36.9,  jun:30.4,  jul:42.1,  aug:21.5,  sep:27.3,  oct:31.2,  nov:29.3,  dec:31.2  },
+  { country:'Slovenia', brand:'Vitraki',           therapy:'Oncology',        jan:13.1,  feb:17.5,  mar:4.4,   apr:26.3,  may:4.4,   jun:16.2,  jul:43.6,  aug:16.9,  sep:9.6,   oct:16.4,  nov:23.4,  dec:26.6  },
+  { country:'Slovenia', brand:'Kogenate',          therapy:'Hematology',      jan:0.5,   feb:93.5,  mar:129.3, apr:191.6, may:0.2,   jun:-0.4,  jul:195.4, aug:103.3, sep:155.9, oct:132.4, nov:0,     dec:101.7 },
+  { country:'Slovenia', brand:'Pharma G Intercomp',therapy:'Pharma Others',   jan:-0.1,  feb:0.4,   mar:-0.7,  apr:-0.3,  may:0.5,   jun:0.6,   jul:-0.2,  aug:-0.1,  sep:-0.6,  oct:0.2,   nov:1.2,   dec:-0.9  },
+  { country:'Slovenia', brand:'Diane',             therapy:"Women's Health",  jan:32.5,  feb:22.5,  mar:22.5,  apr:22.5,  may:50.6,  jun:39.4,  jul:37.3,  aug:37.3,  sep:37.3,  oct:37.3,  nov:37.3,  dec:null  },
+  { country:'Slovenia', brand:'Mirena',            therapy:"Women's Health",  jan:10.5,  feb:29.5,  mar:18.7,  apr:16.4,  may:22.4,  jun:24.5,  jul:15.6,  aug:12.7,  sep:18.7,  oct:21.9,  nov:28.1,  dec:27.5  },
+  { country:'Slovenia', brand:'Qlaira',            therapy:"Women's Health",  jan:17.7,  feb:16.5,  mar:18.3,  apr:17.6,  may:11.6,  jun:15.2,  jul:23.6,  aug:15.7,  sep:14.9,  oct:16.9,  nov:14.1,  dec:16.9  },
+  { country:'Slovenia', brand:'Yaz Family',        therapy:"Women's Health",  jan:45.2,  feb:50.3,  mar:41.9,  apr:43.3,  may:39.2,  jun:45.9,  jul:33.4,  aug:39.1,  sep:46.9,  oct:32.7,  nov:37.2,  dec:41.1  },
+  { country:'Slovenia', brand:'Angelic',           therapy:"Women's Health",  jan:6,     feb:11,    mar:10,    apr:7,     may:10,    jun:10,    jul:10,    aug:10,    sep:10,    oct:10,    nov:10,    dec:null  },
+  { country:'Slovenia', brand:'Valette',           therapy:"Women's Health",  jan:0,     feb:null,  mar:null,  apr:null,  may:null,  jun:null,  jul:null,  aug:null,  sep:null,  oct:null,  nov:null,  dec:null  },
+  { country:'Slovenia', brand:'Minor Brands WH',   therapy:"Women's Health",  jan:1.8,   feb:7.7,   mar:13.4,  apr:9.6,   may:9.7,   jun:16,    jul:9.7,   aug:7.7,   sep:15.8,  oct:4.8,   nov:6.5,   dec:null  },
+  { country:'Slovenia', brand:'Betaferon',         therapy:'Neurology',       jan:null,  feb:null,  mar:6,     apr:13,    may:17,    jun:10,    jul:6,     aug:null,  sep:null,  oct:null,  nov:null,  dec:null  },
+  { country:'Slovenia', brand:'Eylea 2MG',         therapy:'Ophthalmology',   jan:807.2, feb:765.3, mar:867.2, apr:1165.6,may:663.2, jun:646.6, jul:373.4, aug:506.5, sep:554.9, oct:465,   nov:234.7, dec:441.86},
+  { country:'Slovenia', brand:'Eylea 8MG',         therapy:'Ophthalmology',   jan:87.7,  feb:147.8, mar:299.4, apr:226.4, may:193.8, jun:289.4, jul:180.3, aug:195.6, sep:258.4, oct:46,    nov:238,   dec:46    },
+  { country:'Slovenia', brand:'Services II',       therapy:'Other Business',  jan:1.3,   feb:0.6,   mar:0.6,   apr:0.6,   may:0.5,   jun:0.6,   jul:0.6,   aug:0.6,   sep:0.6,   oct:0.6,   nov:0.6,   dec:0.6   },
+  // ── Kosovo ───────────────────────────────────────────────────────────
+  { country:'Kosovo', brand:'Cardioaspirin', therapy:'Cardiovascular', jan:262,   feb:132,   mar:109,   apr:65,    may:92,    jun:108,   jul:78,    aug:79,    sep:60,    oct:5,     nov:null,  dec:213   },
+  { country:'Kosovo', brand:'Nexavar',       therapy:'Oncology',       jan:null,  feb:null,  mar:null,  apr:null,  may:null,  jun:null,  jul:null,  aug:null,  sep:null,  oct:null,  nov:null,  dec:null  },
+  { country:'Kosovo', brand:'Nubeqa',        therapy:'Oncology',       jan:13,    feb:null,  mar:null,  apr:0.2,   may:0.7,   jun:null,  jul:null,  aug:null,  sep:null,  oct:null,  nov:null,  dec:null  },
+  { country:'Kosovo', brand:'Betaferon',     therapy:'Neurology',      jan:13,    feb:null,  mar:null,  apr:null,  may:null,  jun:null,  jul:null,  aug:null,  sep:null,  oct:null,  nov:264,   dec:null  },
+];
+
+// ── Constants ──────────────────────────────────────────────────────────
+const MONTHS     = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+const MONTH_LBLS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const QUARTERS   = { Q1:['jan','feb','mar'], Q2:['apr','may','jun'], Q3:['jul','aug','sep'], Q4:['oct','nov','dec'] };
+const HALVES     = { H1:['jan','feb','mar','apr','may','jun'], H2:['jul','aug','sep','oct','nov','dec'] };
+
+const MONTH_RANGES = {
+  FY: MONTHS,
+  H1: HALVES.H1,
+  H2: HALVES.H2,
+  Q1: QUARTERS.Q1,
+  Q2: QUARTERS.Q2,
+  Q3: QUARTERS.Q3,
+  Q4: QUARTERS.Q4,
+};
+
+const COUNTRY_FLAGS = {
+  'Albania': '🇦🇱', 'Bosnia-Herz.': '🇧🇦', 'Croatia': '🇭🇷',
+  'Montenegro': '🇲🇪', 'North Macedonia': '🇲🇰', 'Serbia': '🇷🇸',
+  'Slovenia': '🇸🇮', 'Kosovo': '🇽🇰'
+};
+
+const PALETTE = [
+  '#58a6ff','#3fb950','#bc8cff','#e3b341','#f85149',
+  '#39d353','#db6d28','#6e7681','#79c0ff','#56d364',
+  '#d2a8ff','#ffa657'
+];
+
+const THERAPY_COLORS = {
+  'Cardiovascular':  '#f85149',
+  'Oncology':        '#58a6ff',
+  'Ophthalmology':   '#3fb950',
+  "Women's Health":  '#bc8cff',
+  'Hematology':      '#e3b341',
+  'Neurology':       '#db6d28',
+  'Pharma G':        '#6e7681',
+  'Pharma Others':   '#6e7681',
+  'Other Business':  '#39d353',
+};
+
+// ── State ──────────────────────────────────────────────────────────────
+let selCountry = 'All';
+let selBrand   = 'All';
+let selTherapy = 'All';
+let selMonth   = 'FY';
+const charts   = {};
+
+// ── Helpers ────────────────────────────────────────────────────────────
+const v    = x => (x == null ? 0 : x);
+const fmt  = (x, d=0) => x == null ? '—' : Number(x).toLocaleString('en', { minimumFractionDigits:d, maximumFractionDigits:d });
+const fmtK = x => {
+  if (x == null) return '—';
+  const abs = Math.abs(x);
+  if (abs >= 1000) return (x/1000).toFixed(1) + 'k';
+  return fmt(x);
+};
+const pct  = (part, total) => total ? (part / total * 100).toFixed(1) + '%' : '—';
+
+function rowTotal(r, months) {
+  return (months || MONTHS).reduce((s, m) => s + v(r[m]), 0);
+}
+
+function groupBy(arr, key) {
+  return arr.reduce((acc, r) => {
+    (acc[r[key]] = acc[r[key]] || []).push(r);
+    return acc;
+  }, {});
+}
+
+function aggregate(rows, months) {
+  const map = new Map();
+  for (const r of rows) {
+    const key = `${r.country}||${r.brand}||${r.therapy}`;
+    if (!map.has(key)) {
+      map.set(key, { country: r.country, brand: r.brand, therapy: r.therapy,
+        jan:0,feb:0,mar:0,apr:0,may:0,jun:0,jul:0,aug:0,sep:0,oct:0,nov:0,dec:0 });
+    }
+    const agg = map.get(key);
+    MONTHS.forEach(m => { agg[m] += v(r[m]); });
+  }
+  return [...map.values()].map(r => ({ ...r, period_total: rowTotal(r, months) }));
+}
+
+function destroyChart(id) {
+  if (charts[id]) { charts[id].destroy(); delete charts[id]; }
+}
+
+function chartOpts({ yLabel='', pctY=false, horizontal=false } = {}) {
+  return {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { labels: { color: '#8b949e', font: { size: 11 }, padding: 12 } },
+      tooltip: {
+        backgroundColor: '#21262d',
+        borderColor: '#30363d',
+        borderWidth: 1,
+        titleColor: '#e6edf3',
+        bodyColor: '#c9d1d9',
+        padding: 10,
+      }
+    },
+    scales: {
+      x: {
+        ticks: { color: '#8b949e', font: { size: 11 } },
+        grid: { color: 'rgba(48,54,61,0.6)' }
+      },
+      y: {
+        ticks: {
+          color: '#8b949e',
+          font: { size: 11 },
+          callback: pctY ? v => v + '%' : v => fmtK(v)
+        },
+        grid: { color: 'rgba(48,54,61,0.6)' },
+        title: yLabel ? { display: true, text: yLabel, color: '#8b949e', font: { size: 10 } } : undefined
+      }
+    }
+  };
+}
+
+// ── Init ───────────────────────────────────────────────────────────────
+(function init() {
+  const countries = [...new Set(RAW.map(r => r.country))].sort();
+  const brands    = [...new Set(RAW.map(r => r.brand))].sort();
+  const therapies = [...new Set(RAW.map(r => r.therapy))].sort();
+
+  const selC = document.getElementById('sel-country');
+  const selB = document.getElementById('sel-brand');
+  const selT = document.getElementById('sel-therapy');
+
+  countries.forEach(c => { const o = document.createElement('option'); o.value = c; o.textContent = (COUNTRY_FLAGS[c]||'') + ' ' + c; selC.appendChild(o); });
+  brands.forEach(b    => { const o = document.createElement('option'); o.value = b; o.textContent = b; selB.appendChild(o); });
+  therapies.forEach(t => { const o = document.createElement('option'); o.value = t; o.textContent = t; selT.appendChild(o); });
+
+  render();
+})();
+
+function applyFilters() {
+  selCountry = document.getElementById('sel-country').value;
+  selBrand   = document.getElementById('sel-brand').value;
+  selTherapy = document.getElementById('sel-therapy').value;
+  selMonth   = document.getElementById('sel-month').value;
+  render();
+}
+
+function resetFilters() {
+  document.getElementById('sel-country').value = 'All';
+  document.getElementById('sel-brand').value   = 'All';
+  document.getElementById('sel-therapy').value = 'All';
+  document.getElementById('sel-month').value   = 'FY';
+  selCountry = selBrand = selTherapy = 'All';
+  selMonth = 'FY';
+  render();
+}
+
+function getFiltered() {
+  return RAW.filter(r =>
+    (selCountry === 'All' || r.country === selCountry) &&
+    (selBrand   === 'All' || r.brand   === selBrand)   &&
+    (selTherapy === 'All' || r.therapy === selTherapy)
+  );
+}
+
+function switchTab(name) {
+  document.querySelectorAll('.tab-btn').forEach(b => {
+    b.classList.toggle('active', b.getAttribute('onclick').includes(`'${name}'`));
+  });
+  document.querySelectorAll('.tab-panel').forEach(p => {
+    p.classList.toggle('active', p.id === `tab-${name}`);
+  });
+}
+
+// ── Main render ────────────────────────────────────────────────────────
+function render() {
+  const filtered = getFiltered();
+  const months   = MONTH_RANGES[selMonth];
+  const agg      = aggregate(filtered, months);
+
+  // Update filter badge
+  const parts = [];
+  if (selCountry !== 'All') parts.push((COUNTRY_FLAGS[selCountry]||'') + ' ' + selCountry);
+  if (selBrand   !== 'All') parts.push(selBrand);
+  if (selTherapy !== 'All') parts.push(selTherapy);
+  if (selMonth   !== 'FY')  parts.push(selMonth);
+  const filterLabel = parts.length ? parts.join(' · ') : 'All Data';
+  document.getElementById('badge-filter').innerHTML = `🔍 <strong>${filterLabel}</strong>`;
+  document.getElementById('filter-summary').innerHTML = `Showing: <strong>${filterLabel}</strong>`;
+
+  renderKPIs(agg, months);
+  renderInsights(agg, months);
+  renderOverviewTab(agg, months);
+  renderBrandsTab(agg, months);
+  renderMonthlyTab(agg, months);
+  renderHeatmapTab(agg, months);
+  renderDetailTab(agg, months);
+}
+
+// ── KPIs ───────────────────────────────────────────────────────────────
+function renderKPIs(agg, months) {
+  const grandTotal = agg.reduce((s, r) => s + r.period_total, 0);
+  const monthly    = MONTHS.map(m => agg.reduce((s, r) => s + r[m], 0));
+
+  const byCountry = groupBy(agg, 'country');
+  const countryTotals = Object.entries(byCountry)
+    .map(([c, rows]) => ({ country: c, total: rows.reduce((s,r) => s+r.period_total, 0) }))
+    .sort((a,b) => b.total - a.total);
+
+  const byBrand = groupBy(agg, 'brand');
+  const brandTotals = Object.entries(byBrand)
+    .map(([b, rows]) => ({ brand: b, total: rows.reduce((s,r) => s+r.period_total, 0) }))
+    .sort((a,b) => b.total - a.total);
+
+  const byTherapy = groupBy(agg, 'therapy');
+  const therapyTotals = Object.entries(byTherapy)
+    .map(([t, rows]) => ({ therapy: t, total: rows.reduce((s,r) => s+r.period_total, 0) }))
+    .sort((a,b) => b.total - a.total);
+
+  const topCountry = countryTotals[0] || { country: '—', total: 0 };
+  const topBrand   = brandTotals[0]   || { brand: '—',   total: 0 };
+  const topTherapy = therapyTotals[0] || { therapy: '—', total: 0 };
+
+  const periodMonthly = months.map(m => agg.reduce((s, r) => s + r[m], 0));
+  const bestMonthIdx  = periodMonthly.indexOf(Math.max(...periodMonthly));
+  const worstMonthIdx = periodMonthly.indexOf(Math.min(...periodMonthly));
+  const avgMonthly    = grandTotal / months.length;
+
+  // Negative months count
+  const negMonths = periodMonthly.filter(x => x < 0).length;
+
+  const kpis = [
+    {
+      icon: '💰',
+      label: 'Total Net Sales',
+      value: fmt(grandTotal),
+      sub: `1.000 EUR · ${selMonth === 'FY' ? 'Full Year 2025' : selMonth + ' 2025'}`,
+      color: 'blue'
+    },
+    {
+      icon: '🌍',
+      label: '# Countries',
+      value: countryTotals.length,
+      sub: `${countryTotals.length} markets in selection`,
+      color: 'purple'
+    },
+    {
+      icon: '💊',
+      label: '# Brands',
+      value: brandTotals.length,
+      sub: `${brandTotals.length} brands in selection`,
+      color: 'yellow'
+    },
+    {
+      icon: '🏆',
+      label: '#1 Country',
+      value: (COUNTRY_FLAGS[topCountry.country]||'') + ' ' + topCountry.country,
+      sub: fmt(topCountry.total) + 'k EUR · ' + pct(topCountry.total, grandTotal) + ' share',
+      color: 'green'
+    },
+    {
+      icon: '⭐',
+      label: '#1 Brand',
+      value: topBrand.brand,
+      sub: fmt(topBrand.total) + 'k EUR · ' + pct(topBrand.total, grandTotal) + ' share',
+      color: 'orange'
+    },
+    {
+      icon: '📈',
+      label: 'Best Month',
+      value: MONTH_LBLS[MONTHS.indexOf(months[bestMonthIdx])],
+      sub: fmt(periodMonthly[bestMonthIdx]) + 'k EUR',
+      color: 'green'
+    },
+    {
+      icon: '📉',
+      label: 'Weakest Month',
+      value: MONTH_LBLS[MONTHS.indexOf(months[worstMonthIdx])],
+      sub: fmt(periodMonthly[worstMonthIdx]) + 'k EUR',
+      color: 'red'
+    },
+    {
+      icon: '📊',
+      label: 'Avg / Month',
+      value: fmt(Math.round(avgMonthly)),
+      sub: `1.000 EUR · over ${months.length} months`,
+      color: 'blue'
+    },
+    {
+      icon: '🏥',
+      label: '#1 Therapy Area',
+      value: topTherapy.therapy,
+      sub: fmt(topTherapy.total) + 'k EUR · ' + pct(topTherapy.total, grandTotal) + ' share',
+      color: 'teal'
+    },
+  ];
+
+  document.getElementById('kpi-grid').innerHTML = kpis.map(k => `
+    <div class="kpi-card ${k.color}">
+      <span class="kpi-icon">${k.icon}</span>
+      <div class="kpi-label">${k.label}</div>
+      <div class="kpi-value">${k.value}</div>
+      <div class="kpi-sub">${k.sub}</div>
+    </div>`).join('');
+}
+
+// ── Insights ───────────────────────────────────────────────────────────
+function renderInsights(agg, months) {
+  const grandTotal = agg.reduce((s, r) => s + r.period_total, 0);
+
+  const byCountry = groupBy(agg, 'country');
+  const countryTotals = Object.entries(byCountry)
+    .map(([c, rows]) => ({ country: c, total: rows.reduce((s,r) => s+r.period_total, 0) }))
+    .sort((a,b) => b.total - a.total);
+
+  const byBrand = groupBy(agg, 'brand');
+  const brandTotals = Object.entries(byBrand)
+    .map(([b, rows]) => ({ brand: b, total: rows.reduce((s,r) => s+r.period_total, 0) }))
+    .sort((a,b) => b.total - a.total);
+
+  const periodMonthly = months.map(m => agg.reduce((s, r) => s + r[m], 0));
+  const bestMonthIdx  = periodMonthly.indexOf(Math.max(...periodMonthly));
+  const worstMonthIdx = periodMonthly.indexOf(Math.min(...periodMonthly));
+
+  // Negative value rows
+  const negRows = agg.filter(r => r.period_total < 0);
+
+  // Top 2 countries concentration
+  const top2Share = countryTotals.slice(0,2).reduce((s,c) => s+c.total, 0);
+  const top2Pct   = grandTotal ? (top2Share / grandTotal * 100).toFixed(0) : 0;
+
+  const insights = [
+    {
+      icon: '🏆',
+      title: 'Market Leader',
+      text: `<strong>${(COUNTRY_FLAGS[countryTotals[0]?.country]||'')} ${countryTotals[0]?.country}</strong> leads with <strong>${fmt(countryTotals[0]?.total)}k EUR</strong> (${pct(countryTotals[0]?.total, grandTotal)} of total). Second is <strong>${countryTotals[1]?.country}</strong> at ${fmt(countryTotals[1]?.total)}k EUR.`
+    },
+    {
+      icon: '💊',
+      title: 'Top Brand',
+      text: `<strong>${brandTotals[0]?.brand}</strong> is the #1 brand with <strong>${fmt(brandTotals[0]?.total)}k EUR</strong> (${pct(brandTotals[0]?.total, grandTotal)}). Runner-up: <strong>${brandTotals[1]?.brand}</strong> at ${fmt(brandTotals[1]?.total)}k EUR.`
+    },
+    {
+      icon: '📅',
+      title: 'Seasonality',
+      text: `Peak month is <strong>${MONTH_LBLS[MONTHS.indexOf(months[bestMonthIdx])]}</strong> (${fmt(periodMonthly[bestMonthIdx])}k EUR). Lowest month is <strong>${MONTH_LBLS[MONTHS.indexOf(months[worstMonthIdx])]}</strong> (${fmt(periodMonthly[worstMonthIdx])}k EUR). Spread: ${fmt(periodMonthly[bestMonthIdx] - periodMonthly[worstMonthIdx])}k EUR.`
+    },
+    {
+      icon: '🎯',
+      title: 'Market Concentration',
+      text: `Top 2 countries (<strong>${countryTotals[0]?.country}</strong> + <strong>${countryTotals[1]?.country}</strong>) account for <strong>${top2Pct}%</strong> of total net sales. ${negRows.length > 0 ? `⚠️ ${negRows.length} brand/country combination(s) show negative totals.` : '✅ All brand/country combinations are positive.'}`
+    },
+  ];
+
+  document.getElementById('insight-grid').innerHTML = insights.map(i => `
+    <div class="insight-card">
+      <div class="insight-icon">${i.icon}</div>
+      <div class="insight-body">
+        <div class="insight-title">${i.title}</div>
+        <div class="insight-text">${i.text}</div>
+      </div>
+    </div>`).join('');
+}
+
+// ── Overview Tab ───────────────────────────────────────────────────────
+function renderOverviewTab(agg, months) {
+  const byCountry = groupBy(agg, 'country');
+  const countryData = Object.entries(byCountry)
+    .map(([c, rows]) => ({ label: c, value: rows.reduce((s,r) => s+r.period_total, 0) }))
+    .sort((a,b) => b.value - a.value);
+
+  const byTherapy = groupBy(agg, 'therapy');
+  const therapyData = Object.entries(byTherapy)
+    .map(([t, rows]) => ({ label: t, value: rows.reduce((s,r) => s+r.period_total, 0) }))
+    .sort((a,b) => b.value - a.value);
+
+  const grandTotal = agg.reduce((s, r) => s + r.period_total, 0);
+
+  // Country bar
+  destroyChart('chart-country-bar');
+  charts['chart-country-bar'] = new Chart(document.getElementById('chart-country-bar'), {
+    type: 'bar',
+    data: {
+      labels: countryData.map(d => (COUNTRY_FLAGS[d.label]||'') + ' ' + d.label),
+      datasets: [{
+        label: 'Net Sales',
+        data: countryData.map(d => d.value),
+        backgroundColor: countryData.map((_, i) => PALETTE[i % PALETTE.length] + 'bb'),
+        borderColor:     countryData.map((_, i) => PALETTE[i % PALETTE.length]),
+        borderWidth: 1,
+        borderRadius: 4
+      }]
+    },
+    options: {
+      ...chartOpts({ yLabel: '1.000 EUR' }),
+      plugins: {
+        ...chartOpts().plugins,
+        legend: { display: false },
+        tooltip: {
+          ...chartOpts().plugins.tooltip,
+          callbacks: {
+            label: ctx => ` ${fmt(ctx.raw)}k EUR (${pct(ctx.raw, grandTotal)})`
+          }
+        }
+      }
+    }
+  });
+
+  // Country donut
+  destroyChart('chart-country-donut');
+  charts['chart-country-donut'] = new Chart(document.getElementById('chart-country-donut'), {
+    type: 'doughnut',
+    data: {
+      labels: countryData.map(d => (COUNTRY_FLAGS[d.label]||'') + ' ' + d.label),
+      datasets: [{
+        data: countryData.map(d => d.value),
+        backgroundColor: countryData.map((_, i) => PALETTE[i % PALETTE.length] + 'cc'),
+        borderColor: countryData.map((_, i) => PALETTE[i % PALETTE.length]),
+        borderWidth: 2,
+        hoverOffset: 8
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'right', labels: { color: '#8b949e', font: { size: 11 }, padding: 10 } },
+        tooltip: {
+          backgroundColor: '#21262d', borderColor: '#30363d', borderWidth: 1,
+          titleColor: '#e6edf3', bodyColor: '#c9d1d9', padding: 10,
+          callbacks: {
+            label: ctx => {
+              const total = ctx.dataset.data.reduce((a,b) => a+b, 0);
+              return ` ${ctx.label}: ${fmt(ctx.raw)}k (${(ctx.raw/total*100).toFixed(1)}%)`;
+            }
+          }
+        }
+      }
+    }
+  });
+
+  // Therapy donut
+  destroyChart('chart-therapy-donut');
+  charts['chart-therapy-donut'] = new Chart(document.getElementById('chart-therapy-donut'), {
+    type: 'doughnut',
+    data: {
+      labels: therapyData.map(d => d.label),
+      datasets: [{
+        data: therapyData.map(d => d.value),
+        backgroundColor: therapyData.map(d => (THERAPY_COLORS[d.label] || '#8b949e') + 'cc'),
+        borderColor:     therapyData.map(d => THERAPY_COLORS[d.label] || '#8b949e'),
+        borderWidth: 2,
+        hoverOffset: 8
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'right', labels: { color: '#8b949e', font: { size: 11 }, padding: 10 } },
+        tooltip: {
+          backgroundColor: '#21262d', borderColor: '#30363d', borderWidth: 1,
+          titleColor: '#e6edf3', bodyColor: '#c9d1d9', padding: 10,
+          callbacks: {
+            label: ctx => {
+              const total = ctx.dataset.data.reduce((a,b) => a+b, 0);
+              return ` ${ctx.label}: ${fmt(ctx.raw)}k (${(ctx.raw/total*100).toFixed(1)}%)`;
+            }
+          }
+        }
+      }
+    }
+  });
+
+  // Monthly total bar
+  const monthlyTotals = months.map(m => agg.reduce((s, r) => s + r[m], 0));
+  destroyChart('chart-monthly-total');
+  charts['chart-monthly-total'] = new Chart(document.getElementById('chart-monthly-total'), {
+    type: 'bar',
+    data: {
+      labels: months.map(m => MONTH_LBLS[MONTHS.indexOf(m)]),
+      datasets: [{
+        label: 'Net Sales',
+        data: monthlyTotals,
+        backgroundColor: monthlyTotals.map(v => v >= 0 ? 'rgba(88,166,255,0.7)' : 'rgba(248,81,73,0.7)'),
+        borderColor:     monthlyTotals.map(v => v >= 0 ? '#58a6ff' : '#f85149'),
+        borderWidth: 1,
+        borderRadius: 3
+      }]
+    },
+    options: {
+      ...chartOpts({ yLabel: '1.000 EUR' }),
+      plugins: {
+        ...chartOpts().plugins,
+        legend: { display: false },
+        tooltip: {
+          ...chartOpts().plugins.tooltip,
+          callbacks: { label: ctx => ` ${fmt(ctx.raw)}k EUR` }
+        }
+      }
+    }
+  });
+
+  // Country summary table
+  renderCountrySummaryTable(agg, months, grandTotal, countryData);
+}
+
+function renderCountrySummaryTable(agg, months, grandTotal, countryData) {
+  const byCountry = groupBy(agg, 'country');
+  const rows = countryData.map(({ label: country, value: total }) => {
+    const countryRows = byCountry[country] || [];
+    const obj = { country, total };
+    months.forEach(m => { obj[m] = countryRows.reduce((s,r) => s + r[m], 0); });
+    const vals = months.map(m => obj[m]);
+    obj.best_month = MONTH_LBLS[MONTHS.indexOf(months[vals.indexOf(Math.max(...vals))])];
+    obj.worst_month = MONTH_LBLS[MONTHS.indexOf(months[vals.indexOf(Math.min(...vals))])];
+    // Brand count
+    obj.brands = [...new Set(countryRows.map(r => r.brand))].length;
+    return obj;
+  });
+
+  const tbl = document.getElementById('table-country-summary');
+  tbl.innerHTML = `
+    <thead><tr>
+      <th>Country</th>
+      ${months.map(m => `<th>${MONTH_LBLS[MONTHS.indexOf(m)]}</th>`).join('')}
+      <th>Total</th>
+      <th>Share</th>
+      <th>Best Month</th>
+      <th>Brands</th>
+    </tr></thead>
+    <tbody>
+      ${rows.map(r => `<tr>
+        <td>${(COUNTRY_FLAGS[r.country]||'')} ${r.country}</td>
+        ${months.map(m => {
+          const val = r[m];
+          const style = val < 0 ? 'color:var(--red)' : '';
+          return `<td style="${style}">${val !== 0 ? fmt(val) : '—'}</td>`;
+        }).join('')}
+        <td><strong style="color:${r.total>=0?'var(--green2)':'var(--red)'}">${fmt(r.total)}</strong></td>
+        <td>
+          <span class="pill pill-blue">${pct(r.total, grandTotal)}</span>
+          <div class="progress-bar-wrap" style="width:60px">
+            <div class="progress-bar" style="width:${grandTotal?Math.max(0,r.total/grandTotal*100):0}%;background:var(--accent)"></div>
+          </div>
+        </td>
+        <td><span class="pill pill-green">${r.best_month}</span></td>
+        <td>${r.brands}</td>
+      </tr>`).join('')}
+      <tr class="total-row">
+        <td>TOTAL</td>
+        ${months.map(m => `<td>${fmt(rows.reduce((s,r) => s+r[m], 0))}</td>`).join('')}
+        <td><strong>${fmt(grandTotal)}</strong></td>
+        <td>100%</td>
+        <td>—</td>
+        <td>—</td>
+      </tr>
+    </tbody>`;
+}
+
+// ── Brands Tab ─────────────────────────────────────────────────────────
+function renderBrandsTab(agg, months) {
+  const byBrand = groupBy(agg, 'brand');
+  const brandData = Object.entries(byBrand)
+    .map(([b, rows]) => ({ label: b, value: rows.reduce((s,r) => s+r.period_total, 0), therapy: rows[0]?.therapy }))
+    .sort((a,b) => b.value - a.value);
+
+  const grandTotal = agg.reduce((s, r) => s + r.period_total, 0);
+
+  // Brand bar
+  destroyChart('chart-brand-bar');
+  charts['chart-brand-bar'] = new Chart(document.getElementById('chart-brand-bar'), {
+    type: 'bar',
+    data: {
+      labels: brandData.map(d => d.label),
+      datasets: [{
+        label: 'Net Sales',
+        data: brandData.map(d => d.value),
+        backgroundColor: brandData.map(d => (THERAPY_COLORS[d.therapy] || '#8b949e') + 'bb'),
+        borderColor:     brandData.map(d => THERAPY_COLORS[d.therapy] || '#8b949e'),
+        borderWidth: 1,
+        borderRadius: 4
+      }]
+    },
+    options: {
+      ...chartOpts({ yLabel: '1.000 EUR' }),
+      plugins: {
+        ...chartOpts().plugins,
+        legend: { display: false },
+        tooltip: {
+          ...chartOpts().plugins.tooltip,
+          callbacks: {
+            label: ctx => ` ${fmt(ctx.raw)}k EUR (${pct(ctx.raw, grandTotal)})`
+          }
+        }
+      }
+    }
+  });
+
+  // Brand donut
+  destroyChart('chart-brand-donut');
+  charts['chart-brand-donut'] = new Chart(document.getElementById('chart-brand-donut'), {
+    type: 'doughnut',
+    data: {
+      labels: brandData.map(d => d.label),
+      datasets: [{
+        data: brandData.map(d => d.value),
+        backgroundColor: brandData.map(d => (THERAPY_COLORS[d.therapy] || '#8b949e') + 'cc'),
+        borderColor:     brandData.map(d => THERAPY_COLORS[d.therapy] || '#8b949e'),
+        borderWidth: 2,
+        hoverOffset: 8
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'right', labels: { color: '#8b949e', font: { size: 11 }, padding: 10 } },
+        tooltip: {
+          backgroundColor: '#21262d', borderColor: '#30363d', borderWidth: 1,
+          titleColor: '#e6edf3', bodyColor: '#c9d1d9', padding: 10,
+          callbacks: {
+            label: ctx => {
+              const total = ctx.dataset.data.reduce((a,b) => a+b, 0);
+              return ` ${ctx.label}: ${fmt(ctx.raw)}k (${(ctx.raw/total*100).toFixed(1)}%)`;
+            }
+          }
+        }
+      }
+    }
+  });
+
+  // Brand × Country stacked bar
+  const byCountry = groupBy(agg, 'country');
+  const countries = Object.keys(byCountry).sort();
+  const brands    = brandData.map(d => d.label);
+
+  destroyChart('chart-brand-country-stacked');
+  charts['chart-brand-country-stacked'] = new Chart(document.getElementById('chart-brand-country-stacked'), {
+    type: 'bar',
+    data: {
+      labels: countries.map(c => (COUNTRY_FLAGS[c]||'') + ' ' + c),
+      datasets: brands.map((brand, i) => ({
+        label: brand,
+        data: countries.map(country => {
+          const rows = agg.filter(r => r.country === country && r.brand === brand);
+          return rows.reduce((s,r) => s+r.period_total, 0);
+        }),
+        backgroundColor: (THERAPY_COLORS[brandData.find(b=>b.label===brand)?.therapy] || PALETTE[i % PALETTE.length]) + 'bb',
+        borderColor:     THERAPY_COLORS[brandData.find(b=>b.label===brand)?.therapy] || PALETTE[i % PALETTE.length],
+        borderWidth: 1,
+        borderRadius: 2
+      }))
+    },
+    options: {
+      ...chartOpts({ yLabel: '1.000 EUR' }),
+      scales: {
+        ...chartOpts().scales,
+        x: { ...chartOpts().scales.x, stacked: true },
+        y: { ...chartOpts().scales.y, stacked: true }
+      }
+    }
+  });
+
+  // Brand × Country matrix table
+  const tbl = document.getElementById('table-brand-matrix');
+  tbl.innerHTML = `
+    <thead><tr>
+      <th>Brand</th>
+      <th>Therapy</th>
+      ${countries.map(c => `<th>${(COUNTRY_FLAGS[c]||'')} ${c}</th>`).join('')}
+      <th>Total</th>
+      <th>Share</th>
+    </tr></thead>
+    <tbody>
+      ${brandData.map(({ label: brand, value: total, therapy }) => {
+        const countryVals = countries.map(country => {
+          const rows = agg.filter(r => r.country === country && r.brand === brand);
+          return rows.reduce((s,r) => s+r.period_total, 0);
+        });
+        return `<tr>
+          <td>${brand}</td>
+          <td><span class="pill" style="background:${(THERAPY_COLORS[therapy]||'#8b949e')}22;color:${THERAPY_COLORS[therapy]||'#8b949e'}">${therapy}</span></td>
+          ${countryVals.map(val => `<td style="${val<0?'color:var(--red)':''}">${val !== 0 ? fmt(val) : '—'}</td>`).join('')}
+          <td><strong style="color:${total>=0?'var(--green2)':'var(--red)'}">${fmt(total)}</strong></td>
+          <td><span class="pill pill-blue">${pct(total, grandTotal)}</span></td>
+        </tr>`;
+      }).join('')}
+      <tr class="total-row">
+        <td>TOTAL</td>
+        <td>—</td>
+        ${countries.map(country => {
+          const t = agg.filter(r => r.country === country).reduce((s,r) => s+r.period_total, 0);
+          return `<td><strong>${fmt(t)}</strong></td>`;
+        }).join('')}
+        <td><strong>${fmt(grandTotal)}</strong></td>
+        <td>100%</td>
+      </tr>
+    </tbody>`;
+}
+
+// ── Monthly Trend Tab ──────────────────────────────────────────────────
+function renderMonthlyTab(agg, months) {
+  const byCountry = groupBy(agg, 'country');
+  const byBrand   = groupBy(agg, 'brand');
+  const countries = Object.keys(byCountry).sort();
+  const brands    = Object.keys(byBrand).sort();
+
+  const monthLabels = months.map(m => MONTH_LBLS[MONTHS.indexOf(m)]);
+
+  // Monthly by country line
+  destroyChart('chart-monthly-country');
+  charts['chart-monthly-country'] = new Chart(document.getElementById('chart-monthly-country'), {
+    type: 'line',
+    data: {
+      labels: monthLabels,
+      datasets: [
+        ...countries.map((country, i) => ({
+          label: (COUNTRY_FLAGS[country]||'') + ' ' + country,
+          data: months.map(m => (byCountry[country]||[]).reduce((s,r) => s+r[m], 0)),
+          borderColor: PALETTE[i % PALETTE.length],
+          backgroundColor: 'transparent',
+          tension: 0.3,
+          pointRadius: 4,
+          pointHoverRadius: 6,
+          borderWidth: 2
+        })),
+        {
+          label: '── TOTAL',
+          data: months.map(m => agg.reduce((s,r) => s+r[m], 0)),
+          borderColor: '#ffffff',
+          backgroundColor: 'transparent',
+          tension: 0.3,
+          pointRadius: 4,
+          borderWidth: 2.5,
+          borderDash: [6,3]
+        }
+      ]
+    },
+    options: chartOpts({ yLabel: '1.000 EUR' })
+  });
+
+  // Monthly by brand line
+  destroyChart('chart-monthly-brand');
+  charts['chart-monthly-brand'] = new Chart(document.getElementById('chart-monthly-brand'), {
+    type: 'line',
+    data: {
+      labels: monthLabels,
+      datasets: brands.map((brand, i) => ({
+        label: brand,
+        data: months.map(m => (byBrand[brand]||[]).reduce((s,r) => s+r[m], 0)),
+        borderColor: PALETTE[i % PALETTE.length],
+        backgroundColor: 'transparent',
+        tension: 0.3,
+        pointRadius: 4,
+        pointHoverRadius: 6,
+        borderWidth: 2
+      }))
+    },
+    options: chartOpts({ yLabel: '1.000 EUR' })
+  });
+
+  // Quarterly by country stacked
+  const qLabels = ['Q1','Q2','Q3','Q4'].filter(q => {
+    return QUARTERS[q].some(m => months.includes(m));
+  });
+
+  destroyChart('chart-quarterly-country');
+  charts['chart-quarterly-country'] = new Chart(document.getElementById('chart-quarterly-country'), {
+    type: 'bar',
+    data: {
+      labels: qLabels,
+      datasets: countries.map((country, i) => ({
+        label: (COUNTRY_FLAGS[country]||'') + ' ' + country,
+        data: qLabels.map(q => {
+          const qMonths = QUARTERS[q].filter(m => months.includes(m));
+          return (byCountry[country]||[]).reduce((s,r) => s + qMonths.reduce((ss,m) => ss+r[m], 0), 0);
+        }),
+        backgroundColor: PALETTE[i % PALETTE.length] + 'bb',
+        borderColor:     PALETTE[i % PALETTE.length],
+        borderWidth: 1,
+        borderRadius: 2
+      }))
+    },
+    options: {
+      ...chartOpts({ yLabel: '1.000 EUR' }),
+      scales: {
+        ...chartOpts().scales,
+        x: { ...chartOpts().scales.x, stacked: true },
+        y: { ...chartOpts().scales.y, stacked: true }
+      }
+    }
+  });
+
+  // Quarterly by brand stacked
+  destroyChart('chart-quarterly-brand');
+  charts['chart-quarterly-brand'] = new Chart(document.getElementById('chart-quarterly-brand'), {
+    type: 'bar',
+    data: {
+      labels: qLabels,
+      datasets: brands.map((brand, i) => ({
+        label: brand,
+        data: qLabels.map(q => {
+          const qMonths = QUARTERS[q].filter(m => months.includes(m));
+          return (byBrand[brand]||[]).reduce((s,r) => s + qMonths.reduce((ss,m) => ss+r[m], 0), 0);
+        }),
+        backgroundColor: (THERAPY_COLORS[agg.find(r=>r.brand===brand)?.therapy] || PALETTE[i % PALETTE.length]) + 'bb',
+        borderColor:     THERAPY_COLORS[agg.find(r=>r.brand===brand)?.therapy] || PALETTE[i % PALETTE.length],
+        borderWidth: 1,
+        borderRadius: 2
+      }))
+    },
+    options: {
+      ...chartOpts({ yLabel: '1.000 EUR' }),
+      scales: {
+        ...chartOpts().scales,
+        x: { ...chartOpts().scales.x, stacked: true },
+        y: { ...chartOpts().scales.y, stacked: true }
+      }
+    }
+  });
+
+  // Monthly by country table
+  const grandTotal = agg.reduce((s, r) => s + r.period_total, 0);
+  const tbl = document.getElementById('table-monthly-country');
+  tbl.innerHTML = `
+    <thead><tr>
+      <th>Country</th>
+      ${monthLabels.map(m => `<th>${m}</th>`).join('')}
+      <th>Total</th>
+      <th>Share</th>
+    </tr></thead>
+    <tbody>
+      ${countries.map(country => {
+        const rows = byCountry[country] || [];
+        const monthVals = months.map(m => rows.reduce((s,r) => s+r[m], 0));
+        const total = monthVals.reduce((s,v) => s+v, 0);
+        return `<tr>
+          <td>${(COUNTRY_FLAGS[country]||'')} ${country}</td>
+          ${monthVals.map(val => `<td style="${val<0?'color:var(--red)':''}">${val !== 0 ? fmt(val) : '—'}</td>`).join('')}
+          <td><strong style="color:${total>=0?'var(--green2)':'var(--red)'}">${fmt(total)}</strong></td>
+          <td><span class="pill pill-blue">${pct(total, grandTotal)}</span></td>
+        </tr>`;
+      }).join('')}
+      <tr class="total-row">
+        <td>TOTAL</td>
+        ${months.map(m => `<td>${fmt(agg.reduce((s,r) => s+r[m], 0))}</td>`).join('')}
+        <td><strong>${fmt(grandTotal)}</strong></td>
+        <td>100%</td>
+      </tr>
+    </tbody>`;
+}
+
+// ── Heatmap Tab ────────────────────────────────────────────────────────
+function renderHeatmapTab(agg, months) {
+  const allVals = agg.flatMap(r => months.map(m => r[m])).filter(x => x !== 0);
+  const maxVal  = Math.max(...allVals, 1);
+  const minVal  = Math.min(...allVals, -1);
+
+  function heatClass(val) {
+    if (val === 0) return '';
+    const range = Math.max(Math.abs(maxVal), Math.abs(minVal));
+    const ratio = val / range;
+    if (ratio > 0.6)  return 'heat-pos-3';
+    if (ratio > 0.3)  return 'heat-pos-2';
+    if (ratio > 0)    return 'heat-pos-1';
+    if (ratio > -0.3) return 'heat-neg-1';
+    if (ratio > -0.6) return 'heat-neg-2';
+    return 'heat-neg-3';
+  }
+
+  const monthLabels = months.map(m => MONTH_LBLS[MONTHS.indexOf(m)]);
+
+  // Country × Month heatmap
+  const byCountry = groupBy(agg, 'country');
+  const countries = Object.keys(byCountry).sort();
+  const tblC = document.getElementById('table-heatmap-country');
+  tblC.innerHTML = `
+    <thead><tr>
+      <th>Country</th>
+      ${monthLabels.map(m => `<th>${m}</th>`).join('')}
+      <th>Total</th>
+    </tr></thead>
+    <tbody>
+      ${countries.map(country => {
+        const rows = byCountry[country] || [];
+        const monthVals = months.map(m => rows.reduce((s,r) => s+r[m], 0));
+        const total = monthVals.reduce((s,v) => s+v, 0);
+        return `<tr>
+          <td>${(COUNTRY_FLAGS[country]||'')} ${country}</td>
+          ${monthVals.map(val => {
+            const cls = heatClass(val);
+            const style = val < 0 ? 'color:var(--red)' : '';
+            return `<td class="${cls}" style="${style}">${val !== 0 ? fmt(val) : '—'}</td>`;
+          }).join('')}
+          <td><strong style="color:${total>=0?'var(--green2)':'var(--red)'}">${fmt(total)}</strong></td>
+        </tr>`;
+      }).join('')}
+      <tr class="total-row">
+        <td>TOTAL</td>
+        ${months.map(m => {
+          const val = agg.reduce((s,r) => s+r[m], 0);
+          return `<td>${fmt(val)}</td>`;
+        }).join('')}
+        <td><strong>${fmt(agg.reduce((s,r) => s+r.period_total, 0))}</strong></td>
+      </tr>
+    </tbody>`;
+
+  // Brand × Month heatmap
+  const byBrand = groupBy(agg, 'brand');
+  const brandData = Object.entries(byBrand)
+    .map(([b, rows]) => ({ brand: b, therapy: rows[0]?.therapy, total: rows.reduce((s,r) => s+r.period_total, 0) }))
+    .sort((a,b) => b.total - a.total);
+
+  const tblB = document.getElementById('table-heatmap-brand');
+  tblB.innerHTML = `
+    <thead><tr>
+      <th>Brand</th>
+      <th>Therapy</th>
+      ${monthLabels.map(m => `<th>${m}</th>`).join('')}
+      <th>Total</th>
+    </tr></thead>
+    <tbody>
+      ${brandData.map(({ brand, therapy, total }) => {
+        const rows = byBrand[brand] || [];
+        const monthVals = months.map(m => rows.reduce((s,r) => s+r[m], 0));
+        return `<tr>
+          <td>${brand}</td>
+          <td><span class="pill" style="background:${(THERAPY_COLORS[therapy]||'#8b949e')}22;color:${THERAPY_COLORS[therapy]||'#8b949e'}">${therapy}</span></td>
+          ${monthVals.map(val => {
+            const cls = heatClass(val);
+            const style = val < 0 ? 'color:var(--red)' : '';
+            return `<td class="${cls}" style="${style}">${val !== 0 ? fmt(val) : '—'}</td>`;
+          }).join('')}
+          <td><strong style="color:${total>=0?'var(--green2)':'var(--red)'}">${fmt(total)}</strong></td>
+        </tr>`;
+      }).join('')}
+      <tr class="total-row">
+        <td>TOTAL</td>
+        <td>—</td>
+        ${months.map(m => {
+          const val = agg.reduce((s,r) => s+r[m], 0);
+          return `<td>${fmt(val)}</td>`;
+        }).join('')}
+        <td><strong>${fmt(agg.reduce((s,r) => s+r.period_total, 0))}</strong></td>
+      </tr>
+    </tbody>`;
+}
+
+// ── Detail Tab ─────────────────────────────────────────────────────────
+function renderDetailTab(agg, months) {
+  if (!agg.length) {
+    document.getElementById('table-detail').innerHTML =
+      '<tr><td class="no-data" colspan="20">No data for selected filters.</td></tr>';
+    return;
+  }
+
+  const allVals = agg.flatMap(r => months.map(m => r[m])).filter(x => x !== 0);
+  const maxVal  = Math.max(...allVals, 1);
+  const minVal  = Math.min(...allVals, -1);
+
+  function heatClass(val) {
+    if (val === 0) return '';
+    const range = Math.max(Math.abs(maxVal), Math.abs(minVal));
+    const ratio = val / range;
+    if (ratio > 0.6)  return 'heat-pos-3';
+    if (ratio > 0.3)  return 'heat-pos-2';
+    if (ratio > 0)    return 'heat-pos-1';
+    if (ratio > -0.3) return 'heat-neg-1';
+    if (ratio > -0.6) return 'heat-neg-2';
+    return 'heat-neg-3';
+  }
+
+  const monthLabels = months.map(m => MONTH_LBLS[MONTHS.indexOf(m)]);
+  const grandTotal  = agg.reduce((s, r) => s + r.period_total, 0);
+
+  const sorted = [...agg].sort((a,b) =>
+    a.country.localeCompare(b.country) || a.brand.localeCompare(b.brand)
+  );
+
+  // Group subtotals by country
+  const byCountry = groupBy(sorted, 'country');
+  const countries = Object.keys(byCountry).sort();
+
+  let rows = '';
+  for (const country of countries) {
+    const countryRows = byCountry[country];
+    const countryTotal = countryRows.reduce((s,r) => s+r.period_total, 0);
+
+    for (const r of countryRows) {
+      const monthVals = months.map(m => r[m]);
+      rows += `<tr>
+        <td>${(COUNTRY_FLAGS[r.country]||'')} ${r.country}</td>
+        <td>${r.brand}</td>
+        <td><span class="pill" style="background:${(THERAPY_COLORS[r.therapy]||'#8b949e')}22;color:${THERAPY_COLORS[r.therapy]||'#8b949e'};font-size:9px">${r.therapy}</span></td>
+        ${monthVals.map(val => {
+          const cls = heatClass(val);
+          const style = val < 0 ? 'color:var(--red)' : '';
+          return `<td class="${cls}" style="${style}">${val !== 0 ? fmt(val) : '—'}</td>`;
+        }).join('')}
+        <td><strong style="color:${r.period_total>=0?'var(--green2)':'var(--red)'}">${fmt(r.period_total)}</strong></td>
+        <td><span class="pill pill-blue" style="font-size:9px">${pct(r.period_total, grandTotal)}</span></td>
+      </tr>`;
+    }
+
+    // Country subtotal
+    const subVals = months.map(m => countryRows.reduce((s,r) => s+r[m], 0));
+    rows += `<tr class="subtotal-row">
+      <td colspan="3">↳ ${(COUNTRY_FLAGS[country]||'')} ${country} Subtotal</td>
+      ${subVals.map(val => `<td style="${val<0?'color:var(--red)':''}">${fmt(val)}</td>`).join('')}
+      <td><strong>${fmt(countryTotal)}</strong></td>
+      <td><span class="pill pill-yellow" style="font-size:9px">${pct(countryTotal, grandTotal)}</span></td>
+    </tr>`;
+  }
+
+  // Grand total
+  const grandVals = months.map(m => agg.reduce((s,r) => s+r[m], 0));
+  rows += `<tr class="total-row">
+    <td colspan="3">GRAND TOTAL</td>
+    ${grandVals.map(val => `<td>${fmt(val)}</td>`).join('')}
+    <td><strong>${fmt(grandTotal)}</strong></td>
+    <td>100%</td>
+  </tr>`;
+
+  const tbl = document.getElementById('table-detail');
+  tbl.innerHTML = `
+    <thead><tr>
+      <th>Country</th>
+      <th>Brand</th>
+      <th>Therapy</th>
+      ${monthLabels.map(m => `<th>${m}</th>`).join('')}
+      <th>Total</th>
+      <th>Share</th>
+    </tr></thead>
+    <tbody>${rows}</tbody>`;
+}
+</script>
+</body>
+</html>
